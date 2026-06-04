@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEWS2 Scoring & Anes Nurses Concern</title>
+    <style>
+        :root {
+            --white-bg: #ffffff; --green-bg: #d4edda; --yellow-bg: #fff3cd; --red-bg: #f8d7da;
+            --white-border: #cbd5e0; --green-border: #28a745; --yellow-border: #ffc107; --red-border: #dc3545;
+            --s3-color: #fc8181; --s2-color: #f6ad55; --s1-color: #fff3cd; --s0-color: #ffffff;
+        }
+        body { font-family: 'Kanit', sans-serif; padding: 15px; background-color: #f0f4f8; color: #2d3748; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        h2, h3 { text-align: center; color: #2b6cb0; margin-top: 0; }
+        
+        .input-group { margin-bottom: 15px; }
+        
+        .row-inputs { display: flex; flex-wrap: nowrap; gap: 10px; margin-bottom: 15px; width: 100%; }
+        .row-inputs .input-group { flex: 1; min-width: 0; margin-bottom: 0; }
+        .row-inputs label { font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.95em; }
+        input[type="text"], select { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; background: white; box-sizing: border-box; }
+        
+        .s3 { background-color: var(--s3-color) !important; color: white; }
+        .s2 { background-color: var(--s2-color) !important; color: white; }
+        .s1 { background-color: var(--s1-color) !important; color: #5a4308; }
+        .s0 { background-color: var(--s0-color) !important; color: black; }
+        .s-none { background-color: #f7fafc !important; color: #a0aec0; }
+
+        button { width: 100%; padding: 16px; background: #3182ce; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button:hover { background: #2b6cb0; }
+
+        #result-area { display: none; margin-top: 20px; padding: 20px; border-radius: 12px; border: 4px solid #cbd5e0; line-height: 1.6; }
+        .res-title { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; text-decoration: underline; }
+        
+        .level-white { background-color: var(--white-bg); border-color: var(--white-border) !important; color: #2d3748; }
+        .level-green { background-color: var(--green-bg); border-color: var(--green-border) !important; color: #155724; }
+        .level-yellow { background-color: var(--yellow-bg); border-color: var(--yellow-border) !important; color: #856404; }
+        .level-red { background-color: var(--red-bg); border-color: var(--red-border) !important; color: #721c24; }
+
+        .concern-summary-box { background: rgba(255, 255, 255, 0.7); padding: 10px 15px; border-radius: 8px; margin: 10px 0; font-size: 0.9em; border-left: 4px solid #cbd5e0; }
+        .concern-summary-box ul { margin: 5px 0 0 0; padding-left: 20px; }
+
+        /* Pop-up Windows */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); padding-top: 30px; overflow-y: auto; }
+        .modal-content { background-color: white; margin: auto; padding: 20px; border-radius: 15px; max-width: 460px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .popup-title { color: #c53030; font-size: 1.15em; font-weight: bold; text-align: center; margin-bottom: 15px; border-bottom: 2px solid #feb2b2; padding-bottom: 8px; }
+        
+        .concern-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px; margin-bottom: 6px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; font-size: 0.9em; cursor: pointer; }
+        .concern-item input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; }
+        
+        .safe-box { background: #f0fff4; border: 2px dashed #48bb78; padding: 12px; border-radius: 8px; margin-top: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; color: #22543d; cursor: pointer; }
+        .safe-box input { width: 20px; height: 20px; flex-shrink: 0; }
+        
+        .btn-submit-popup { background: #4a5568; color: white; margin-top: 15px; padding: 12px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>NEWS2 Scoring &<br>Anes Nurses Concern</h2>
+    
+    <div class="row-inputs">
+        <div class="input-group">
+            <label>เลขประจำตัวคนไข้ (HN)</label>
+            <input type="text" id="patient_id" placeholder="ระบุ HN คนไข้">
+        </div>
+        <div class="input-group">
+            <label>เลขผู้ป่วย (AN)</label>
+            <input type="text" id="case_id" placeholder="ระบุ AN ผู้ป่วย">
+        </div>
+    </div>
+    
+    <div class="input-group">
+        <label>รหัสประจำตัวผู้ประเมิน</label>
+        <input type="text" id="evaluator_id" placeholder="กรุณากรอกรหัสประจำตัวพยาบาล/เจ้าหน้าที่">
+    </div>
+    <hr style="border: 1px solid #e2e8f0; margin: 20px 0;">
+
+    <!-- ส่วนสัญญาณชีพ 7 ข้อหลัก -->
+    <div class="input-group">
+        <label>1. Respiration rate (ต่อนาที)</label>
+        <select id="rr" onchange="updateStyle(this)">
+            <option value="none" class="s-none" selected disabled>-- โปรดเลือกอัตราการหายใจ --</option>
+            <option value="3" class="s3">≤ 8 (Score 3)</option>
+            <option value="1" class="s1">9 - 11 (Score 1)</option>
+            <option value="0" class="s0">12 - 20 (Score 0)</option>
+            <option value="2" class="s2">21 - 24 (Score 2)</option>
+            <option value="3" class="s3">≥ 25 (Score 3)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>2. SpO2 Scale 1 หรือ Scale 2</label>
+        <select id="spo2" onchange="updateStyle(this)">
+            <option value="none" class="s-none" selected disabled>-- โปรดเลือกค่า SpO2 --</option>
+            <option value="3" class="s3">Scale 1: ≤ 91% (Score 3)</option>
+            <option value="2" class="s2">Scale 1: 92 - 93% (Score 2)</option>
+            <option value="1" class="s1">Scale 1: 94 - 95% (Score 1)</option>
+            <option value="0" class="s0">Scale 1: ≥ 96% (Score 0)</option>
+            <option value="0" style="background:#cbd5e0; font-weight:bold;" disabled>-- เกณฑ์กลุ่มเสี่ยงเฉพาะ Scale 2 (COPD) --</option>
+            <option value="3" class="s3">Scale 2: ≤ 83% (Score 3)</option>
+            <option value="2" class="s2">Scale 2: 84 - 85% (Score 2)</option>
+            <option value="1" class="s1">Scale 2: 86 - 87% (Score 1)</option>
+            <option value="0" class="s0">Scale 2: 88 - 92% หรือ ≥ 93% on air (Score 0)</option>
+            <option value="1" class="s1">Scale 2: 93 - 94% on oxygen (Score 1)</option>
+            <option value="2" class="s2">Scale 2: 95 - 96% on oxygen (Score 2)</option>
+            <option value="3" class="s3">Scale 2: ≥ 97% on oxygen (Score 3)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>3. Air or oxygen?</label>
+        <select id="oxy" onchange="updateStyle(this)">
+            <option value="none" class="s-none" selected disabled>-- โปรดเลือกสภาวะการให้ออกซิเจน --</option>
+            <option value="0" class="s0">Air (Score 0)</option>
+            <option value="2" class="s2">Oxygen (Score 2)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>4. Systolic blood pressure (mmHg)</label>
+        <select id="sbp" onchange="updateStyle(this)">
+            <option value="none" class="s-none" selected disabled>-- โปรดเลือกความดันตัวบน --</option>
+            <option value="3" class="s3">≤ 90 (Score 3)</option>
+            <option value="2" class="s2">91 - 100 (Score 2)</option>
+            <option value="1" class="s1">101 - 110 (Score 1)</option>
+            <option value="0" class="s0">111 - 219 (Score 0)</option>
+            <option value="3" class="s3">≥ 220 (Score 3)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>5. Pulse (ต่อนาที)</label>
+        <select id="pulse" onchange="updateStyle(this)">
+            <option value="none" class="s-none" selected disabled>-- โปรดเลือกชีพจร --</option>
+            <option value="3" class="s3">≤ 40 (Score 3)</option>
+            <option value="1" class="s1">41 - 50 (Score 1)</option>
+            <option value="0" class="s0">51 - 90 (Score 0)</option>
+            <option value="1" class="s1">91 - 110 (Score 1)</option>
+            <option value="2" class="s2">111 - 130 (Score 2)</option>
+            <option value="3" class="s3">≥ 131 (Score 3)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>6. Consciousness (ความรู้สึกตัว)</label>
+        <select id="consc" onchange="updateStyle(this)">
+            <option value="none" class="s-none" selected disabled>-- โปรดเลือกความรู้สึกตัว --</option>
+            <option value="0" class="s0">Alert (Score 0)</option>
+            <option value="3" class="s3">CVPU (Score 3)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>7. Temperature (°C)</label>
+        <select id="temp" onchange="updateStyle(this)">
+            <option value="none" class="s-none" selected disabled>-- โปรดเลือกช่วงอุณหภูมิ --</option>
+            <option value="3" class="s3">≤ 35.0 (Score 3)</option>
+            <option value="1" class="s1">35.1 - 36.0 (Score 1)</option>
+            <option value="0" class="s0">36.1 - 38.0 (Score 0)</option>
+            <option value="1" class="s1">38.1 - 39.0 (Score 1)</option>
+            <option value="2" class="s2">≥ 39.1 (Score 2)</option>
+        </select>
+    </div>
+
+    <button onclick="checkInitialScore()">คลิกลองเริ่มประเมินผล</button>
+
+    <!-- หน้าจอแสดงผลลัพธ์สุดท้าย -->
+    <div id="result-area"></div>
+</div>
+
+<!-- หน้าต่าง Pop-up 9 ข้อ -->
+<div id="concernModal" class="modal">
+    <div class="modal-content">
+        <div class="popup-title">Trigger Nurse's Concern (9 ข้อความกังวล)</div>
+        
+        <div id="concern-list">
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="1. หายใจผิดปกติ" onchange="uncheckSafeBox()"> 1. หายใจผิดปกติ</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="2. ซีด เป็นลม วูบ ใจสั่น บวม ระบบไหลเวียนผิดปกติ" onchange="uncheckSafeBox()"> 2. ซีด เป็นลม วูบ ใจสั่น บวม ระบบไหลเวียนผิดปกติ</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="3. เกร็ง กระตุก" onchange="uncheckSafeBox()"> 3. เกร็ง กระตุก</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="4. NEW CONFUSE" onchange="uncheckSafeBox()"> 4. NEW CONFUSE</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="5. กระสับกระส่าย" onchange="uncheckSafeBox()"> 5. กระสับกระส่าย</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="6. Acute Pain" onchange="uncheckSafeBox()"> 6. Acute Pain</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="7. Signs FAST TRACK (Stroke, STEMI, Sepsis, Suicidal)" onchange="uncheckSafeBox()"> 7. อาการเฉียบพลันอื่นๆ/Signs FAST TRACK (Stroke, STEMI, Sepsis, Suicidal)</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="8. อาการผิดปกติอื่นๆ ที่พยาบาลเป็นกังวล" onchange="uncheckSafeBox()"> 8. อาการผิดปกติอื่นๆ ที่พยาบาลเป็นกังวล</label>
+            <label class="concern-item"><input type="checkbox" class="popup-cb" data-text="9. อาการที่ผู้ป่วยบอกว่าตนเองรู้สึกไม่ดีแต่ไม่สามารถระบุได้" onchange="uncheckSafeBox()"> 9. อาการที่ผู้ป่วยบอกว่าตนเองรู้สึกไม่ดีแต่ไม่สามารถระบุได้</label>
+        </div>
+
+        <label class="safe-box" id="safe-box-container">
+            <input type="checkbox" id="safe-cb" onchange="clearAllConcerns()"> 🟢 ไม่มีอาการใดๆ น่าห่วงตาม 9 ข้อนี้
+        </label>
+
+        <button class="btn-submit-popup" onclick="submitPopupData()">ยืนยันข้อมูลและประเมินผลสุดท้าย</button>
+    </div>
+</div>
+
+<script>
+    let calculatedScore = 0;
+    let singleParamThree = false;
+
+    function updateStyle(el) {
+        el.className = "";
+        if (el.value === "3") el.classList.add("s3");
+        else if (el.value === "2") el.classList.add("s2");
+        else if (el.value === "1") el.classList.add("s1");
+        else if (el.value === "0") el.classList.add("s0");
+    }
+
+    function checkInitialScore() {
+        const pId = document.getElementById('patient_id').value.trim();
+        const cId = document.getElementById('case_id').value.trim();
+        const eId = document.getElementById('evaluator_id').value.trim();
+
+        if (!pId || !cId || !eId) {
+            alert("❌ ปฏิเสธการประเมิน: กรุณากรอกเลขคนไข้ เลขผู้ป่วย และรหัสประจำตัวผู้ประเมินให้ครบถ้วนก่อน");
+            return;
+        }
+
+        const fields = ['rr', 'spo2', 'oxy', 'sbp', 'pulse', 'consc', 'temp'];
+        let isAllSelected = true;
+
+        fields.forEach(id => {
+            if (document.getElementById(id).value === "none") {
+                isAllSelected = false;
+            }
+        });
+
+        if (!isAllSelected) {
+            alert("❌ ปฏิเสธการประเมิน: กรุณาเลือกค่าสัญญาณชีพให้ครบถ้วนทุกข้อ");
+            return;
+        }
+
+        calculatedScore = 0;
+        singleParamThree = false;
+        
+        fields.forEach(id => {
+            let val = parseInt(document.getElementById(id).value);
+            calculatedScore += val;
+            if (val === 3) singleParamThree = true;
+        });
+
+        openPopup();
+    }
+
+    function openPopup() {
+        document.getElementById('concernModal').style.display = "block";
+        document.getElementById('safe-cb').checked = false;
+        document.querySelectorAll('.popup-cb').forEach(cb => cb.checked = false);
+
+        const safeBox = document.getElementById('safe-box-container');
+        if (calculatedScore > 3 || singleParamThree) {
+            safeBox.style.display = "none";
+        } else {
+            safeBox.style.display = "flex";
+        }
+    }
+
+    function uncheckSafeBox() {
+        document.getElementById('safe-cb').checked = false;
+    }
+
+    function clearAllConcerns() {
+        if(document.getElementById('safe-cb').checked) {
+            document.querySelectorAll('.popup-cb').forEach(cb => cb.checked = false);
+        }
+    }
+
+    function submitPopupData() {
+        const hasConcernChecked = document.querySelectorAll('.popup-cb:checked').length > 0;
+        const isSafeChecked = document.getElementById('safe-cb').checked;
+        const isHighRiskScore = (calculatedScore > 3 || singleParamThree);
+
+        if (isHighRiskScore && !hasConcernChecked) {
+            alert("โปรดระบุอาการความกังวล: เนื่องจากคนไข้มีสัญญาณชีพที่เริ่มผิดปกติและตกเกณฑ์ความเสี่ยงแล้ว กรุณาติ๊กยืนยันอาการความกังวลย่อยเพื่อประเมินขั้นตอนการจัดการรักษา");
+            return;
+        }
+
+        if (!isHighRiskScore && !hasConcernChecked && !isSafeChecked) {
+            alert("โปรดระบุสภาวะ: กรุณาเลือกข้อความกังวล หรือเลือกกล่อง 'ไม่มีอาการใดๆน่าห่วง' เพื่อบันทึกผลลัพธ์");
+            return;
+        }
+
+        // เก็บข้อมูลรายการข้อความที่พยาบาลเลือก
+        let selectedConcernsText = [];
+        if (hasConcernChecked) {
+            document.querySelectorAll('.popup-cb:checked').forEach(cb => {
+                selectedConcernsText.push(cb.getAttribute('data-text'));
+            });
+        }
+
+        document.getElementById('concernModal').style.display = "none";
+        renderFinalResult(hasConcernChecked, selectedConcernsText);
+    }
+
+    function renderFinalResult(triggeredByConcern, selectedConcernsText) {
+        const resDiv = document.getElementById('result-area');
+        resDiv.style.display = "block";
+        resDiv.className = ""; 
+
+        const pId = document.getElementById('patient_id').value;
+        const cId = document.getElementById('case_id').value;
+        const eId = document.getElementById('evaluator_id').value;
+
+        let severity = ""; let cssClass = ""; let monitor = ""; let nurseResp = ""; let teamResp = ""; let transfer = "";
+
+        if (calculatedScore >= 6) {
+            severity = "High risk (แดง)";
+            cssClass = "level-red";
+            monitor = "ทุก 5 นาทีจนกว่าจะเคลื่อนย้ายผู้ป่วย หรือ Until Stable";
+            nurseResp = "จัดการอาการเบื้องต้นทันทีตามแนวทางรายงานหัวหน้าเวรทันที รายงานแพทย์วิสัญญีทันทีเตรียมรถ Emergency เครื่องดีฟิบิเลเตอร์ประสานย้าย ICU";
+            teamResp = "Team management and treatment Stat";
+            transfer = "วิสัญญีพยาบาล";
+        } 
+        else if (calculatedScore >= 4 || singleParamThree || triggeredByConcern) {
+            severity = "Moderate risk (เหลือง)";
+            cssClass = "level-yellow";
+            monitor = "ทุก 5 นาที/4 ครั้ง ทุก 15 นาที/3 ครั้ง Until Stable";
+            nurseResp = "ประเมินซ้ำพร้อมกับจัดการอาการเบื้องต้นรายงานหัวหน้าเวรติดตามอาการเปลี่ยนแปลงอย่างใกล้ชิดหากไม่ดีขึ้นให้รายงานแพทย์" + 
+                        (triggeredByConcern && calculatedScore < 4 && !singleParamThree ? "<br><b style='color:#c53030;'>*หมายเหตุ: ระบบยกระดับข้อมูลการประเมินและสีกรอบสู่ระดับ 'สีเหลือง' เนื่องจากพยาบาลระบุพบความกังวลเสริม (Anes Nurse Concern)*</b>" : "");
+            teamResp = "Team management and treatment within 5 mins";
+            transfer = "วิสัญญีพยาบาล";
+        } 
+        else if (calculatedScore >= 1) {
+            severity = "Low risk (เขียว)";
+            cssClass = "level-green";
+            monitor = "ทุก 15 นาที";
+            nurseResp = "ประเมินซ้ำพร้อมจัดการอาการเบื้องต้นตามแนวทาง";
+            teamResp = "Routine Round Nursing care";
+            transfer = "ไม่มีผู้นำส่ง";
+        } 
+        else {
+            severity = "No risk (ขาว)";
+            cssClass = "level-white";
+            monitor = "ทุก 15 นาที";
+            nurseResp = "Routine Nursing care";
+            teamResp = "Routine Round Nursing care";
+            transfer = "ไม่มีผู้นำส่ง";
+        }
+
+        // สร้างส่วนแสดงรายการข้อความกังวลที่ถูกเลือก
+        let concernHtmlSummary = "";
+        if (selectedConcernsText && selectedConcernsText.length > 0) {
+            concernHtmlSummary = `
+                <div class="concern-summary-box" style="border-color: #e53e3e;">
+                    <b>⚠️ อาการตามเกณฑ์ Nurse Concern ที่ตรวจพบ:</b>
+                    <ul>
+                        ${selectedConcernsText.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        } else {
+            concernHtmlSummary = `
+                <div class="concern-summary-box" style="border-color: #48bb78;">
+                    <b>🟢 ผลประเมินสภาวะ:</b> ไม่มีอาการในกลุ่มเสี่ยงน่าห่วงตามเกณฑ์ 9 ข้อ
+                </div>
+            `;
+        }
+
+        resDiv.classList.add(cssClass);
+        resDiv.innerHTML = `
+            <div class="res-title">สรุปผลการประเมินและแนวทางปฏิบัติ</div>
+            <div style="background: rgba(255,255,255,0.6); padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size:0.9em;">
+                <b>HN คนไข้:</b> ${pId} | <b>AN ผู้ป่วย:</b> ${cId} <br>
+                <b>รหัสผู้ประเมิน:</b> ${eId}
+            </div>
+            <b>คะแนนรวมสัญญาณชีพ (NEWS2 Total):</b> ${calculatedScore} คะแนน<br>
+            <b>ระดับความรุนแรง (Level of Severity):</b> ${severity}
+            
+            ${concernHtmlSummary} <!-- แทรกส่วนรายงานสรุปอาการที่ติ๊กไว้ตรงนี้ -->
+            
+            <hr style="border-color:rgba(0,0,0,0.15)">
+            <b>⏱️ ความถี่ในการ Monitoring ใน RR:</b> ${monitor}<br><br>
+            <b>🧑‍⚕️ Intervention Response Nurse response:</b> ${nurseResp}<br><br>
+            <b>🩺 Intervention Response team response:</b> ${teamResp}<br><br>
+            <b>🚑 ผู้นำส่งผู้ป่วยกลับหอผู้ป่วย:</b> ${transfer}
+        `;
+        
+        resDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
